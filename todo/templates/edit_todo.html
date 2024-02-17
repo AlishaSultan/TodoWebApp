@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<div>
+  <style>
+    /* Style for input fields */
+input[type="text"], 
+select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.todo-form input[type="submit"],
+  .btn {
+    width: 20%; /* Adjust the width as needed */
+    padding: 10px; /* Adjust the padding as needed */
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff; /* Change the background color as needed */
+    color: #fff; /* Change the text color as needed */
+    cursor: pointer;
+  }
+
+  </style>
+  <div class="container pt-4">
+    <div class="row p-0 mt-4">
+      <div class="col-lg-7 mx-auto shadow p-0">
+        <div class="alert alert-info">
+          <h2>Edit TODO</h2>
+        </div>
+        <div class="p-4">
+          <form action="" method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="submit" value="Save Changes" class="btn btn-info">
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

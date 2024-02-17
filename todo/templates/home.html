@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <!-- Toastr CSS and JavaScript -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+</head>
+<style>
+  /* Style for input fields */
+  .todo-form input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+  }
+
+  /* Style for select fields */
+  .todo-form select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+  }
+
+  /* Style for submit button */
+  .todo-form input[type="submit"],
+  .btn {
+    width: 20%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  /* Style for priority colors */
+  .priority-high {
+    background-color: #ff6b6b;
+  }
+
+  .priority-medium {
+    background-color: #ffa94d;
+  }
+
+  .priority-low {
+    background-color: #8aff8d;
+  }
+
+  /* Hide the table initially */
+  .hide {
+    display: none;
+
+
+  }
+  /* Toast notification styles */
+    /* Toast notification styles moved to the top */
+  .toast {
+    visibility: hidden; /* Hidden by default */
+    width: 80%; /* Increased width */
+    min-width: 500px; /* Minimum width */
+    margin-left: -40%; /* Adjusted to keep it centered */
+    background-color: #007bff; /* Bootstrap primary color */
+    color: white; /* Text color */
+    text-align: center;
+    border-radius: 6px;
+    padding: 12px;
+    position: fixed;
+    z-index: 1;
+    left: 70%;
+    top: 43px; /* Positioned at the top */
+    font-size: 17px;
+    transition: visibility 0s, opacity 0.5s linear;
+  }
+
+  
+  /* New styles for title and message within the toast */
+  .toast-title {
+    font-weight: bold; /* Bold for title */
+    font-size: 24px; /* Larger font size for title */
+    margin-bottom: 5px; /* Space between title and message */
+  }
+
+   .toast-message {
+    font-size: 14px; /* Smaller font size for message */
+  }
+  .toast.show {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .toast.hide {
+    visibility: hidden;
+    opacity: 0;
+  }
+
+  /* Bell icon style */
+  .toast-bell-icon {
+    color: white; /* White color icon */
+    position: absolute; /* Position it absolutely within the toast */
+    left: 20px; /* Space from the left */
+    top: 35%; /* Center it vertically */
+    transform: translateY(-50%); /* Center alignment adjustment */
+    font-size: 22px; /* Icon size */
+  }
+
+  .todo-form textarea[name="description"] {
+    width: 100%;
+    height: 200px; /* Adjust the height as needed */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+  }
+
+</style>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    function showToast(title, dueDate, dueTime) {
+      var toast = document.getElementById("toast");
+      if (!toast) return;
+      // Add a bell icon span before the title
+      toast.innerHTML = "<span class='toast-bell-icon'>&#x1F514;</span>" + // Bell icon
+        "<div class='toast-title'>" + title + "</div>" +
+        "<div class='toast-message'>Please complete your pending task till " + dueDate + " " + dueTime + ".</div>";
+      toast.className = "toast show";
+      setTimeout(function () {
+        toast.className = "toast";
+      }, 5000);
+    }
+
+    // Expose the function to toggle table visibility to the global scope
+    window.toggleTable = function () {
+      var table = document.getElementById('todo-table');
+      if (table.classList.contains('hide')) {
+        table.classList.remove('hide');
+      } else {
+        table.classList.add('hide');
+      }
+    };
+
+    // Expose the function to hide the table to the global scope
+    window.hideTable = function () {
+      var table = document.getElementById('todo-table');
+      table.classList.add('hide');
+    };
+    function remindPendingTasks() {
+      {% for todo in todos %}
+      if ("{{ todo.status }}" == 'P') {
+        setTimeout(function () {
+          showToast("{{ todo.title }}", "{{ todo.date }}", "{{ todo.time }}");
+        }, 6000 * {{ forloop.counter0 }});
+        }
+  {% endfor %}
+    }
+
+  if (!window.reminderSet) {
+    window.reminderSet = true;
+    remindPendingTasks();
+    setInterval(remindPendingTasks, 1800000);
+  }
+  });
+</script>
+<div>
+
+
+  <div id="toast" class="toast">Please complete your pending tasks.</div>
+  <div class="container pt-4" style = "margin-top: 30px;">
+    <div class="row p-0 mt-4">
+      <div class="col-lg-7 mx-auto shadow p-0">
+        <div class="alert alert-info">
+          <h2>Add New TODO</h2>
+        </div>
+        <div class="p-4">
+          <form action="/add-todo/" method="POST" class="todo-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <hr>
+            <button type="submit" class="btn">Add Task</button>
+            <button type="button" onclick="window.toggleTable()" class="btn">See Task</button>
+            <button type="button" onclick="window.hideTable()" class="btn" id="hide-button">Hide Task</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="col-lg-12 mx-auto" style="margin-top: 30px;">
+        <div class="border hide" id="todo-table">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Due Date</th>
+                <th>Due Time</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for todo in todos %}
+              <tr class="todo-item" data-due-date="{{ todo.date }} {{ todo.time }}">
+                <td>{{ forloop.counter }}</td>
+                <td class="todo-title">{{ todo.title }}</td>
+                <td>{{ todo.description }}</td>
+                <td>
+                  {% if todo.status == 'C' %}
+                  ✅
+                  {% else %}
+                  🕒
+                  {% endif %}
+                </td>
+                <td>{{ todo.priority }}</td>
+                <td>{{ todo.date }}</td>
+                <td>{{ todo.time }}</td>
+                <td>
+                  <a href="/delete-todo/{{ todo.id }}" title="Delete" class="">🗑</a>
+                  <a href="{% url 'edit_todo' todo.id %}">✍🏻</a>
+                  {% if todo.status == 'P' %}
+                  <a href="/change-status/{{ todo.id }}/C" title="Mark Completed" class="">✅</a>
+                  {% else %}
+                  <a href="/change-status/{{ todo.id }}/P" title="Mark Pending" class="">🕒</a>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+{% endblock %}
